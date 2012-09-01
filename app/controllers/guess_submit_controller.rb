@@ -47,30 +47,35 @@ class GuessSubmitController < UIViewController
   end
 
   def submit
-    @submit_btn.enabled = false
-    navigationItem.rightBarButtonItem = @indicator_button
-    @indicator.startAnimating
-    url = File.join(Game::ENDPOINT, "game", GameList.current.player.name, GameList.current.id.to_s, "guess", @text_field.text)
+    if !@text_field.text || @text_field.text.strip == ""
+      Messaging.show_error_message("Can't submit a blank guess.")
+    else
+      @submit_btn.enabled = false
+      navigationItem.rightBarButtonItem = @indicator_button
+      @indicator.startAnimating
+      url = File.join(Game::ENDPOINT, "game", GameList.current.player.name, GameList.current.id.to_s, "guess", @text_field.text)
+      puts url
 
-    JottoRestClient.get(url, lambda do |response|
-      Dispatch::Queue.main.sync do
-        if response.succeeded?
-          guess = Guess.from_hash(response.data["guess"])
-          GameList.current.player.guesses << guess
-          delegate.guessSubmit(self, didSubmitGuess:guess)
+      JottoRestClient.get(url, lambda do |response|
+        Dispatch::Queue.main.sync do
+          if response.succeeded?
+            guess = Guess.from_hash(response.data["guess"])
+            GameList.current.player.guesses << guess
+            delegate.guessSubmit(self, didSubmitGuess:guess)
 
-          @text_field.clearText
-          UIApplication.sharedApplication.keyWindow.rootViewController.popViewControllerAnimated(true)
-        elsif response.invalid?
-          Messaging.show_message("Oops!", response.data["validation_messages"].first)
-        else
-          Messaging.show_error_message(response.data["message"])
+            @text_field.clearText
+            UIApplication.sharedApplication.keyWindow.rootViewController.popViewControllerAnimated(true)
+          elsif response.invalid?
+            Messaging.show_message("Oops!", response.data["validation_messages"].first)
+          else
+            Messaging.show_error_message(response.data["message"])
+          end
+
+          @submit_btn.enabled = true
+          navigationItem.rightBarButtonItem = nil
+          @indicator.stopAnimating
         end
-
-        @submit_btn.enabled = true
-        navigationItem.rightBarButtonItem = nil
-        @indicator.stopAnimating
-      end
-    end)
+      end)
+    end
   end
 end

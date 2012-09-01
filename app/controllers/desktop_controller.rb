@@ -3,10 +3,10 @@ class DesktopController < UIViewController
   ALPHABET_BOARD_FRAME = [[0, 250], [320, 480]]
 
   def viewDidLoad
-    self.init_alphabet_board
-    self.init_guess_list
-    self.init_guess_view
-    self.init_guess_nav_button
+    init_alphabet_board
+    init_guess_list
+    init_guess_view
+    init_guess_nav_button
     # GKLocalPlayer.localPlayer.authenticateWithCompletionHandler(lambda do |error|
     #   UIAlertView.alloc.initWithTitle("Message", message:"Complete!", delegate:nil, cancelButtonTitle:"Ok", otherButtonTitles:nil).show
     # end)
