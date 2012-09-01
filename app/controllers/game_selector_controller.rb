@@ -13,7 +13,7 @@ class GameSelectorController < UITableViewController
     init_desktop_view
     init_game_create_view
 
-    # update_list
+    update_list
   end
 
   def viewWillAppear(animated)
@@ -105,7 +105,7 @@ class GameSelectorController < UITableViewController
   end
 
   def tableView(tableView, numberOfRowsInSection:section)
-    count = GameList.all[section] ? GameList.all[section].size : 0
-    count
+    # current section may not have been retrieved from the server yet, return 0 if so
+    GameList.all[section] ? GameList.all[section].size : 0
   end
 end
