@@ -52,30 +52,34 @@ class GuessSubmitController < UIViewController
   end
 
   def submit
-    @submit_btn.enabled = false
-    show_loading
+    if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
+      @submit_btn.enabled = false
+      show_loading
 
-    params = URL.build_params(:guess_text => @text_field.text || "")
-    url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.current.player.name), GameList.current.id.to_s, "guess", "?#{params}")
+      params = URL.build_params(:guess_text => @text_field.text || "")
+      url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.current.player.name), GameList.current.id.to_s, "guess", "?#{params}")
 
-    JottoRestClient.get(url, lambda do |response|
-      Dispatch::Queue.main.sync do
-        if response.succeeded?
-          guess = Guess.from_hash(response.data["guess"])
-          player = PlayerState.from_hash(response.data["player"])
-          finished = !!response.data["finished"]
-          GameList.current.player.guesses << guess
+      JottoRestClient.get(url, lambda do |response|
+        Dispatch::Queue.main.sync do
+          if response.succeeded?
+            guess = Guess.from_hash(response.data["guess"])
+            player = PlayerState.from_hash(response.data["player"])
+            finished = !!response.data["finished"]
+            GameList.current.player.guesses << guess
 
-          @text_field.clearText
-          navigationController.popViewControllerAnimated(true)
+            @text_field.clearText
+            navigationController.popViewControllerAnimated(true)
 
-          delegate.guessSubmit(self, didSubmitGuess:guess, forPlayer:player, gameIsFinished:finished)
+            delegate.guessSubmit(self, didSubmitGuess:guess, forPlayer:player, gameIsFinished:finished)
+          end
+
+          @submit_btn.enabled = true
+          hide_loading
         end
-
-        @submit_btn.enabled = true
-        hide_loading
-      end
-    end)
+      end)
+    else
+      Messaging.show_message("Invalid Word", "According to Apple, '#{@text_field.text || ""}' is not a word.")
+    end
   end
 
   def show_loading

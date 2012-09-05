@@ -68,10 +68,17 @@ class DesktopController < UIViewController
 
   def guessSubmit(controller, didSubmitGuess:guess, forPlayer:player, gameIsFinished:finished)
     GameList.all[GameList::MY_TURN].reject! { |game| GameList.current.id == game.id }
+    GameList.all[GameList::THEIR_TURN].reject! { |game| GameList.current.id == game.id }
     GameList.current.player = player
 
     if player.won?
-      Messaging.show_message("That's the Ticket", "You guessed it!  Nice work.  Your opponent has one more chance.")
+      message = if finished
+        "You guessed it!  Nice work."
+      else
+        "You guessed it!  Nice work.  Your opponent has one more chance."
+      end
+
+      Messaging.show_message("That's the Ticket", message)
       GameList.all[GameList::COMPLETE] << GameList.current unless GameList.all[GameList::COMPLETE].include?(GameList.current)
     else
       if finished

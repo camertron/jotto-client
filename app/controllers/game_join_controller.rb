@@ -11,20 +11,24 @@ class GameJoinController < GuessSubmitController
   end
 
   def submit
-    show_loading
+    if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
+      show_loading
 
-    params = URL.build_params(:word => @text_field.text || "")
-    url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.user_name), "join", @game_id.to_s, "?#{params}")
+      params = URL.build_params(:word => @text_field.text || "")
+      url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.user_name), "join", @game_id.to_s, "?#{params}")
 
-    JottoRestClient.get(url, lambda do |response|
-      Dispatch::Queue.main.sync do
-        if response.succeeded?
-          @delegate.gameJoined(self, didJoinGame:Game.from_hash(response.data["game"]))
-          navigationController.popViewControllerAnimated(true)
+      JottoRestClient.get(url, lambda do |response|
+        Dispatch::Queue.main.sync do
+          if response.succeeded?
+            @delegate.gameJoined(self, didJoinGame:Game.from_hash(response.data["game"]))
+            navigationController.popViewControllerAnimated(true)
+          end
+
+          hide_loading
         end
-
-        hide_loading
-      end
-    end)
+      end)
+    else
+      Messaging.show_message("Invalid Word", "According to Apple, '#{@text_field.text || ""}' is not a word.")
+    end
   end
 end
