@@ -1,17 +1,30 @@
 class GuessSubmitController < UIViewController
-  LABEL_BOUNDS = [[10, 10], [300, 25]]
-  TEXT_VIEW_BOUNDS = [[10, 40], [300, 35]]
-  SUBMIT_BTN_BOUNDS = [[10, 85], [300, 35]]
+  TEXT_VIEW_BOUNDS = [[10, 10], [300, 35]]
+  SUBMIT_BTN_BOUNDS = [[10, 55], [300, 35]]
+  MY_WORD_BUTTON_BOUNDS = [[10, 95], [300, 35]]
 
   attr_accessor :delegate
 
   def viewDidLoad
-    setTitle("Guess")
     view.backgroundColor = UIColor.groupTableViewBackgroundColor
-    self.init_label
-    self.init_text_field
-    self.init_submit_btn
-    self.init_indicator
+    init_text_field
+    init_submit_btn
+    init_indicator
+    init_my_word_button
+    setTitle("Guess")
+  end
+
+  def init_my_word_button
+    @my_word_btn = UIButton.buttonWithType(UIButtonTypeRoundedRect)
+    @my_word_btn.frame = MY_WORD_BUTTON_BOUNDS
+    @my_word_btn.setTitle('Tap to see your word', forState:UIControlStateNormal)
+    @my_word_btn.setTitle('Tap to see your word', forState:UIControlStateSelected)
+    @my_word_btn.addTarget(self, action:'see_word', forControlEvents:UIControlEventTouchUpInside)
+    view.addSubview(@my_word_btn)
+  end
+
+  def see_word
+    Messaging.show_message("Your word", GameList.current.player.word.upcase)
   end
 
   def init_indicator
@@ -19,17 +32,9 @@ class GuessSubmitController < UIViewController
     @indicator_button = UIBarButtonItem.alloc.initWithCustomView(@indicator)
   end
 
-  def init_label
-    @label = UILabel.alloc.initWithFrame(LABEL_BOUNDS)
-    @label.backgroundColor = UIColor.clearColor
-    @label.font = UIFont.systemFontOfSize(14.0)
-    @label.text = "Your guess:"
-    view.addSubview(@label)
-  end
-
   def init_text_field
     @text_field = UITextField.alloc.initWithFrame(TEXT_VIEW_BOUNDS)
-    @text_field.placeholder = "GUESS"
+    @text_field.placeholder = "UBLOO"
     @text_field.borderStyle = UITextBorderStyleRoundedRect
     @text_field.clearButtonMode = UITextFieldViewModeWhileEditing
     @text_field.returnKeyType = UIReturnKeyDone
@@ -47,35 +52,39 @@ class GuessSubmitController < UIViewController
   end
 
   def submit
-    if !@text_field.text || @text_field.text.strip == ""
-      Messaging.show_error_message("Can't submit a blank guess.")
-    else
-      @submit_btn.enabled = false
-      navigationItem.rightBarButtonItem = @indicator_button
-      @indicator.startAnimating
-      url = File.join(Game::ENDPOINT, "game", GameList.current.player.name, GameList.current.id.to_s, "guess", @text_field.text)
-      puts url
+    @submit_btn.enabled = false
+    show_loading
 
-      JottoRestClient.get(url, lambda do |response|
-        Dispatch::Queue.main.sync do
-          if response.succeeded?
-            guess = Guess.from_hash(response.data["guess"])
-            GameList.current.player.guesses << guess
-            delegate.guessSubmit(self, didSubmitGuess:guess)
+    params = URL.build_params(:guess_text => @text_field.text || "")
+    url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.current.player.name), GameList.current.id.to_s, "guess", "?#{params}")
 
-            @text_field.clearText
-            UIApplication.sharedApplication.keyWindow.rootViewController.popViewControllerAnimated(true)
-          elsif response.invalid?
-            Messaging.show_message("Oops!", response.data["validation_messages"].first)
-          else
-            Messaging.show_error_message(response.data["message"])
-          end
+    JottoRestClient.get(url, lambda do |response|
+      Dispatch::Queue.main.sync do
+        if response.succeeded?
+          guess = Guess.from_hash(response.data["guess"])
+          player = PlayerState.from_hash(response.data["player"])
+          finished = !!response.data["finished"]
+          GameList.current.player.guesses << guess
 
-          @submit_btn.enabled = true
-          navigationItem.rightBarButtonItem = nil
-          @indicator.stopAnimating
+          @text_field.clearText
+          navigationController.popViewControllerAnimated(true)
+
+          delegate.guessSubmit(self, didSubmitGuess:guess, forPlayer:player, gameIsFinished:finished)
         end
-      end)
-    end
+
+        @submit_btn.enabled = true
+        hide_loading
+      end
+    end)
+  end
+
+  def show_loading
+    navigationItem.rightBarButtonItem = @indicator_button
+    @indicator.startAnimating
+  end
+
+  def hide_loading
+    navigationItem.rightBarButtonItem = nil
+    @indicator.stopAnimating
   end
 end

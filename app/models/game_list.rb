@@ -1,8 +1,10 @@
 class GameList < Array
-  PENDING = 0
-  IN_PROGRESS = 1
-  COMPLETE = 2
-  TITLES = { 0 => "Pending", 1 => "In Progress", 2 => "Complete" }
+  NEW = 0
+  PENDING = 1
+  MY_TURN = 2
+  THEIR_TURN = 3
+  COMPLETE = 4
+  TITLES = { 0 => "New", 1 => "Pending", 2 => "My Turn", 3 => "Their Turn", 4 => "Complete" }
 
   class << self
     def all=(list)
@@ -14,7 +16,8 @@ class GameList < Array
     end
 
     def refresh(callback)
-      JottoRestClient.get(File.join(Game::ENDPOINT, "game/#{GameList.user_name}/list"), lambda do |response|
+      url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.user_name), "list")
+      JottoRestClient.get(url, lambda do |response|
         @all = []
         response.data["games"].each do |game_group|
           @all << game_group.map { |game_hash| Game.from_hash(game_hash) }
@@ -32,12 +35,11 @@ class GameList < Array
     end
 
     def user_name
-      #@user_name
-      "camertron"
+      @user_name
     end
 
     def user_name=(name)
-      #@user_name = name
+      @user_name = name
     end
 
     def add(new_game)

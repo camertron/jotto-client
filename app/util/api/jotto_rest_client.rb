@@ -2,7 +2,19 @@ class JottoRestClient
   class << self
     def get(url_string, callback)
       AsyncRestClient.get_json(url_string, lambda do |data|
-        callback.call(JottoResponse.new(data))
+        response = JottoResponse.new(data)
+
+        if response.invalid?
+          Dispatch::Queue.main.sync do
+            Messaging.show_error_message(response.validation_messages.first)
+          end
+        elsif response.failed?
+          Dispatch::Queue.main.sync do
+            Messaging.show_error_message(response.message)
+          end
+        end
+
+        callback.call(response)
       end)
     end
   end
@@ -13,6 +25,14 @@ class JottoResponse
 
   def initialize(data)
     @data = data
+  end
+
+  def message
+    @data["message"]
+  end
+
+  def validation_messages
+    @data["validation_messages"]
   end
 
   def status_code

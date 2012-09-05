@@ -56,7 +56,8 @@ class GameCreateController < UIViewController
     ctl.borderStyle = UITextBorderStyleRoundedRect
     ctl.clearButtonMode = UITextFieldViewModeWhileEditing
     ctl.returnKeyType = UIReturnKeyDone
-    ctl.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+    ctl.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter
+    ctl.autocapitalizationType = UITextAutocapitalizationTypeNone
     view.addSubview(ctl)
     [ctl, height + 35]
   end
@@ -94,9 +95,11 @@ class GameCreateController < UIViewController
 
     JottoRestClient.get(url, lambda do |response|
       Dispatch::Queue.main.sync do
-        UIApplication.sharedApplication.keyWindow.rootViewController.popViewControllerAnimated(true)
-        game = Game.from_hash(response.data["game"])
-        delegate.gameCreated(self, didCreateGame:game)
+        if response.succeeded?
+          navigationController.popViewControllerAnimated(true)
+          game = Game.from_hash(response.data["game"])
+          delegate.gameCreated(self, didCreateGame:game)
+        end
       end
     end)
   end

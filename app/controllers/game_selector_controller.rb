@@ -1,5 +1,4 @@
 class GameSelectorController < UITableViewController
-  GAME_LIST_FRAME = [[0, 0], [320, 480]]
   attr_reader :cells
 
   def viewDidLoad
@@ -8,33 +7,27 @@ class GameSelectorController < UITableViewController
 
     init_indicator
     init_new_game_button
-    init_game_list
     init_refresh_button
     init_desktop_view
     init_game_create_view
+    init_join_view
 
     update_list
   end
 
   def viewWillAppear(animated)
-    @table_list_view.deselectRowAtIndexPath(@table_list_view.indexPathForSelectedRow, animated:animated)
+    view.deselectRowAtIndexPath(view.indexPathForSelectedRow, animated:animated)
+    view.reloadData
     super
   end
 
   # this controller is the delegate for game_create_controller
   def gameCreated(controller, didCreateGame:game)
-    GameList.all[GameList::PENDING] << game
-    @table_list_view.reloadData
+    GameList.all[GameList::NEW] << game
+    view.reloadData
   end
 
   # private
-
-  def init_game_list
-    @table_list_view = UITableView.alloc.initWithFrame(GAME_LIST_FRAME, style:UITableViewStylePlain)
-    @table_list_view.dataSource = self
-    @table_list_view.delegate = self
-    view.addSubview(@table_list_view)
-  end
 
   def init_indicator
     @indicator = UIActivityIndicatorView.alloc.initWithActivityIndicatorStyle(UIActivityIndicatorViewStyleWhite)
@@ -60,6 +53,11 @@ class GameSelectorController < UITableViewController
     @game_create_controller.delegate = self
   end
 
+  def init_join_view
+    @join_view = GameJoinController.alloc.init
+    @join_view.delegate = self
+  end
+
   def update_list
     navigationItem.rightBarButtonItem = @indicator_button
     @indicator.startAnimating
@@ -68,32 +66,63 @@ class GameSelectorController < UITableViewController
       Dispatch::Queue.main.sync do
         @indicator.stopAnimating
         navigationItem.rightBarButtonItem = @refresh_button
-        @table_list_view.reloadData
-        self.viewWillAppear(false)
+        view.reloadData
       end
     end)
   end
 
   def create_new_game
-    UIApplication.sharedApplication.keyWindow.rootViewController.pushViewController(@game_create_controller, animated:true)
+    navigationController.pushViewController(@game_create_controller, animated:true)
+  end
+
+  def gameJoined(controller, didJoinGame:joined_game)
+    GameList.all[GameList::PENDING].reject! { |game| joined_game.id == game.id }
+    GameList.all[GameList::THEIR_TURN] << joined_game
+    view.reloadData
+  end
+
+  def alertView(alertView, clickedButtonAtIndex:buttonIndex)
+    if buttonIndex == 1  # user clicked "yes"
+      navigationController.pushViewController(@join_view, animated:true)
+    end
   end
 
   def tableView(tableView, cellForRowAtIndexPath:indexPath)
     identifier = "cell"
     cell = tableView.dequeueReusableCellWithIdentifier(identifier)
     cell ||= UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:identifier)
-    cell.textLabel.text = GameList.all[indexPath.section][indexPath.row].name
+
+    text = GameList.all[indexPath.section][indexPath.row].name.dup
+    if GameList.all[indexPath.section][indexPath.row].opponent
+      text << " vs #{GameList.all[indexPath.section][indexPath.row].opponent}"
+    end
+
+    cell.textLabel.text = text
     cell
   end
 
   def tableView(tableView, didSelectRowAtIndexPath:indexPath)
-    if [GameList::IN_PROGRESS, GameList::COMPLETE].include?(indexPath.section)
-      GameList.current = GameList.all[indexPath.section][indexPath.row]
-      UIApplication.sharedApplication.keyWindow.rootViewController.pushViewController(@desktop, animated:true)
-      @desktop.refresh
-    else
-      @table_list_view.deselectRowAtIndexPath(indexPath, animated:true)
+    case indexPath.section
+      when GameList::MY_TURN, GameList::THEIR_TURN, GameList::COMPLETE
+        GameList.current = GameList.all[indexPath.section][indexPath.row]
+        navigationController.pushViewController(@desktop, animated:true)
+        @desktop.refresh
+      when GameList::PENDING
+        game = GameList.all[indexPath.section][indexPath.row]
+        @join_view.game_id = game.id
+
+        msg = UIAlertView.alloc.initWithTitle("Join Game?",
+          message:"Are you sure you want to join this game?",
+          delegate:self,
+          cancelButtonTitle:"No",
+          otherButtonTitles:nil
+        )
+
+        msg.addButtonWithTitle("Yes")
+        msg.show
     end
+
+    view.deselectRowAtIndexPath(indexPath, animated:true)
   end
 
   def tableView(tableView, titleForHeaderInSection:section)

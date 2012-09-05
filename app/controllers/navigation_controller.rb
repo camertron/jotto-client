@@ -1,6 +1,6 @@
 class NavigationController < UINavigationController
   def viewDidLoad
-    $root = GameSelectorController.alloc.init
+    $root = LoginController.alloc.init
     pushViewController($root, animated:false)
   end
 end

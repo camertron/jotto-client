@@ -24,7 +24,7 @@ class DesktopController < UIViewController
 
   def show_guess_view
     GameList.current.save
-    UIApplication.sharedApplication.keyWindow.rootViewController.pushViewController(@submit_controller, animated:true)
+    navigationController.pushViewController(@submit_controller, animated:true)
   end
 
   def init_alphabet_board
@@ -66,7 +66,22 @@ class DesktopController < UIViewController
     @guess_list.deselectRowAtIndexPath(@guess_list.indexPathForSelectedRow, animated:true)
   end
 
-  def guessSubmit(controller, didSubmitGuess:guess)
+  def guessSubmit(controller, didSubmitGuess:guess, forPlayer:player, gameIsFinished:finished)
+    GameList.all[GameList::MY_TURN].reject! { |game| GameList.current.id == game.id }
+    GameList.current.player = player
+
+    if player.won?
+      Messaging.show_message("That's the Ticket", "You guessed it!  Nice work.  Your opponent has one more chance.")
+      GameList.all[GameList::COMPLETE] << GameList.current unless GameList.all[GameList::COMPLETE].include?(GameList.current)
+    else
+      if finished
+        Messaging.show_message("Game Over", "Alright that's all she wrote.  You bloo!")
+        GameList.all[GameList::COMPLETE] << GameList.current unless GameList.all[GameList::COMPLETE].include?(GameList.current)
+      else
+        GameList.all[GameList::THEIR_TURN] << GameList.current unless GameList.all[GameList::THEIR_TURN].include?(GameList.current)
+      end
+    end
+
     refresh
   end
 end
