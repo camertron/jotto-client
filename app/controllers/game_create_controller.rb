@@ -89,12 +89,17 @@ class GameCreateController < UIViewController
   def create_game
     if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@controls[:word_text_field].text)
       # send to server
-      params = URL.build_params({
+      params = {
         :player => GameList.user_name,
         :word => @controls[:word_text_field].text,
         :game_name => @controls[:name_text_field].text
-      })
+      }
 
+      if PushNotifications.device_token
+        params[:device_token] = PushNotifications.device_token
+      end
+
+      params = URL.build_params(params)
       url = File.join(Game::ENDPOINT, "game", GameList.user_name, "create", "?#{params}")
 
       JottoRestClient.get(url, lambda do |response|
@@ -103,6 +108,8 @@ class GameCreateController < UIViewController
             navigationController.popViewControllerAnimated(true)
             game = Game.from_hash(response.data["game"])
             delegate.gameCreated(self, didCreateGame:game)
+            @controls[:word_text_field].clearText
+            @controls[:name_text_field].clearText
           end
         end
       end)

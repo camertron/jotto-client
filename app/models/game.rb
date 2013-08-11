@@ -1,5 +1,5 @@
 class Game
-  #ENDPOINT = "http://localhost:3001"
+  # ENDPOINT = "http://192.168.2.64:3000"
   ENDPOINT = "http://jotto-server.herokuapp.com"
   attr_accessor :name, :id, :status, :player, :opponent
 

@@ -14,7 +14,12 @@ class GameJoinController < GuessSubmitController
     if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
       show_loading
 
-      params = URL.build_params(:word => @text_field.text || "")
+      params = { :word => @text_field.text || "" }
+      if PushNotifications.device_token
+        params[:device_token] = PushNotifications.device_token
+      end
+
+      params = URL.build_params(params)
       url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.user_name), "join", @game_id.to_s, "?#{params}")
 
       JottoRestClient.get(url, lambda do |response|
