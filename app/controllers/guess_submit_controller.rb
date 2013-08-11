@@ -2,16 +2,22 @@ class GuessSubmitController < UIViewController
   TEXT_VIEW_BOUNDS = [[10, 10], [300, 35]]
   SUBMIT_BTN_BOUNDS = [[10, 55], [300, 35]]
   MY_WORD_BUTTON_BOUNDS = [[10, 95], [300, 35]]
+  THONGLE_BOUNDS = [[60, 160], [200, 200]]
 
   attr_accessor :delegate
 
   def viewDidLoad
-    view.backgroundColor = UIColor.groupTableViewBackgroundColor
     init_text_field
     init_submit_btn
     init_indicator
     init_my_word_button
-    setTitle("Guess")
+    init_thongle if GameList.thongle?
+    setTitle("Guess");
+
+    self.view.backgroundColor = UIColor.clearColor
+    background_table_view = UITableView.alloc.initWithFrame(self.view.bounds, style:UITableViewStyleGrouped);
+    self.view.addSubview(background_table_view)
+    self.view.sendSubviewToBack(background_table_view)
   end
 
   def init_my_word_button
@@ -25,6 +31,12 @@ class GuessSubmitController < UIViewController
 
   def see_word
     Messaging.show_message("Your word", GameList.current.player.word.upcase)
+  end
+
+  def init_thongle
+    @thongle_view = UIImageView.alloc.initWithFrame(THONGLE_BOUNDS)
+    @thongle_view.setImage(UIImage.imageNamed("zombin101.png"))
+    view.addSubview(@thongle_view)
   end
 
   def init_indicator

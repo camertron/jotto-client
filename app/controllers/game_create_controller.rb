@@ -23,8 +23,11 @@ class GameCreateController < UIViewController
 
   def viewDidLoad
     setTitle("New Game")
-    view.backgroundColor = UIColor.groupTableViewBackgroundColor
     init_controls
+    self.view.backgroundColor = UIColor.clearColor
+    background_table_view = UITableView.alloc.initWithFrame(self.view.bounds, style:UITableViewStyleGrouped);
+    self.view.addSubview(background_table_view)
+    self.view.sendSubviewToBack(background_table_view)
   end
 
   def init_controls

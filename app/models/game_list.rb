@@ -18,10 +18,13 @@ class GameList < Array
     def refresh(callback)
       url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.user_name), "list")
       JottoRestClient.get(url, lambda do |response|
-        @all = []
-        response.data["games"].each do |game_group|
-          @all << game_group.map { |game_hash| Game.from_hash(game_hash) }
+        if response.succeeded?
+          @all = []
+          response.data["games"].each do |game_group|
+            @all << game_group.map { |game_hash| Game.from_hash(game_hash) }
+          end
         end
+
         callback.call(self)
       end)
     end
@@ -40,6 +43,10 @@ class GameList < Array
 
     def user_name=(name)
       @user_name = name
+    end
+
+    def thongle?
+      @user_name == "zombin101"
     end
 
     def add(new_game)

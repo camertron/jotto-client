@@ -9,9 +9,17 @@ class AsyncRestClient
     def get_json(url_string, callback)
       get(url_string, lambda do |data|
         error = Pointer.new(:object)
-        callback.call(NSJSONSerialization.JSONObjectWithData(data,
-          options:NSJSONReadingMutableContainers,
-          error:error))
+
+        if data
+          callback.call(NSJSONSerialization.JSONObjectWithData(data,
+            options:NSJSONReadingMutableContainers,
+            error:error))
+        else
+          callback.call({
+            "http_status" => 500,
+            "message" => "Couldn't communicate with the game server, please try again :("
+          })
+        end
       end)
     end
 
