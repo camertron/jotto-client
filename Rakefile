@@ -22,5 +22,6 @@ Motion::Project::App.setup do |app|
   app.entitlements['aps-environment'] = ENVIRONMENT
   app.entitlements['get-task-allow'] = true
 
+  app.info_plist['UILaunchImageFile'] = 'launch'
   # app.info_plist['UIRequiredDeviceCapabilities'] = ['gamekit']
 end

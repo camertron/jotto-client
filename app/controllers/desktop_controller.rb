@@ -1,15 +1,24 @@
 class DesktopController < UIViewController
-  GUESS_LIST_FRAME = [[0, 0], [320, 250]]
-  ALPHABET_BOARD_FRAME = [[0, 250], [320, 480]]
+  ALPHABET_BOARD_HEIGHT = 230
 
   def viewDidLoad
-    init_alphabet_board
     init_guess_list
+    init_alphabet_board
     init_guess_view
     init_guess_nav_button
     # GKLocalPlayer.localPlayer.authenticateWithCompletionHandler(lambda do |error|
     #   UIAlertView.alloc.initWithTitle("Message", message:"Complete!", delegate:nil, cancelButtonTitle:"Ok", otherButtonTitles:nil).show
     # end)
+  end
+
+  def alphabet_board_frame
+    gl = guess_list_frame
+    CGRectMake(0, gl.size.height, 320, ALPHABET_BOARD_HEIGHT)
+  end
+
+  def guess_list_frame
+    bounds = UIScreen.mainScreen.bounds
+    CGRectMake(0, 0, bounds.size.width, bounds.size.height - ALPHABET_BOARD_HEIGHT)
   end
 
   def init_guess_nav_button
@@ -28,14 +37,14 @@ class DesktopController < UIViewController
   end
 
   def init_alphabet_board
-    @alphabet_board = AlphabetBoardView.alloc.initWithFrame(ALPHABET_BOARD_FRAME)
+    @alphabet_board = AlphabetBoardView.alloc.initWithFrame(alphabet_board_frame)
     @alphabet_board.delegate = self
     view.backgroundColor = UIColor.whiteColor
     view.addSubview(@alphabet_board)
   end
 
   def init_guess_list
-    @guess_list = UITableView.alloc.initWithFrame(GUESS_LIST_FRAME, style:UITableViewStylePlain)
+    @guess_list = UITableView.alloc.initWithFrame(guess_list_frame, style:UITableViewStylePlain)
     @guess_list.dataSource = self
     @guess_list.delegate = self
     view.addSubview(@guess_list)

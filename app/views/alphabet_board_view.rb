@@ -7,9 +7,9 @@ class AlphabetBoardView < UIView
     super
 
     @letters = (65..90).to_a.map(&:chr).each_slice(LETTERS_PER_LINE).each_with_index.map do |letter_chunk, chunk_index|
-      start_x = (frame.last.first / 2) - ((letter_chunk.size * LETTER_WIDTH) / 2)
+      start_x = (frame.size.width / 2) - ((letter_chunk.size * LETTER_WIDTH) / 2)
       letter_chunk.each_with_index.map do |letter, letter_index|
-        letter_frame = [[start_x + (LETTER_WIDTH * letter_index), (LETTER_HEIGHT * chunk_index)], [LETTER_WIDTH, LETTER_HEIGHT]]
+        letter_frame = CGRectMake(start_x + (LETTER_WIDTH * letter_index), LETTER_HEIGHT * chunk_index, LETTER_WIDTH, LETTER_HEIGHT)
         letter_view = LetterView.alloc.initWithFrame(letter_frame, andLetter:letter)
         letter_view.delegate = self
         letter_view
