@@ -39,4 +39,10 @@ class AlphabetBoard
       "#{letter_obj.letter}#{indicator}"
     end.join(" ")
   end
+
+  def reset
+    @letters.each do |letter_obj|
+      letter_obj.state = Letter::States::UNDECORATED
+    end
+  end
 end

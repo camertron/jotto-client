@@ -1,14 +1,17 @@
 class DesktopController < UIViewController
-  ALPHABET_BOARD_HEIGHT = 230
+  ALPHABET_BOARD_HEIGHT = 170
 
   def viewDidLoad
     init_guess_list
     init_alphabet_board
     init_guess_view
     init_guess_nav_button
+
     # GKLocalPlayer.localPlayer.authenticateWithCompletionHandler(lambda do |error|
     #   UIAlertView.alloc.initWithTitle("Message", message:"Complete!", delegate:nil, cancelButtonTitle:"Ok", otherButtonTitles:nil).show
     # end)
+
+    puts UserProperties.instance.username
   end
 
   def alphabet_board_frame
@@ -17,8 +20,14 @@ class DesktopController < UIViewController
   end
 
   def guess_list_frame
-    bounds = UIScreen.mainScreen.bounds
-    CGRectMake(0, 0, bounds.size.width, bounds.size.height - ALPHABET_BOARD_HEIGHT)
+    navigation_bar_size = UIApplication.sharedApplication.keyWindow.rootViewController.navigationBar.size
+    bounds = UIScreen.mainScreen.applicationFrame
+
+    CGRectMake(
+      0, 0,
+      bounds.size.width,
+      bounds.size.height - (navigation_bar_size.height + ALPHABET_BOARD_HEIGHT)
+    )
   end
 
   def init_guess_nav_button

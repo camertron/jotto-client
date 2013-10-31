@@ -11,7 +11,7 @@ class GameJoinController < GuessSubmitController
   end
 
   def submit
-    if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
+    # if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
       show_loading
 
       params = { :word => @text_field.text || "" }
@@ -32,8 +32,8 @@ class GameJoinController < GuessSubmitController
           hide_loading
         end
       end)
-    else
-      Messaging.show_message("Invalid Word", "According to Apple, '#{@text_field.text || ""}' is not a word.")
-    end
+    # else
+    #   Messaging.show_message("Invalid Word", "According to Apple, '#{@text_field.text || ""}' is not a word.")
+    # end
   end
 end

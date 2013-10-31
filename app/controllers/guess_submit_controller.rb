@@ -64,7 +64,7 @@ class GuessSubmitController < UIViewController
   end
 
   def submit
-    if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
+    # if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
       @submit_btn.enabled = false
       show_loading
 
@@ -89,9 +89,9 @@ class GuessSubmitController < UIViewController
           hide_loading
         end
       end)
-    else
-      Messaging.show_message("Invalid Word", "According to Apple, '#{@text_field.text || ""}' is not a word.")
-    end
+    # else
+    #   Messaging.show_message("Invalid Word", "According to Apple, '#{@text_field.text || ""}' is not a word.")
+    # end
   end
 
   def show_loading
