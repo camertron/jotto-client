@@ -11,7 +11,7 @@ class GuessSubmitController < UIViewController
     init_submit_btn
     init_indicator
     init_my_word_button
-    init_thongle if GameList.thongle?
+    init_thongle if User.current_user.thongle?
     setTitle("Guess");
 
     self.view.backgroundColor = UIColor.clearColor

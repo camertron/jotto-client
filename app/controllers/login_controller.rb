@@ -1,21 +1,32 @@
 class LoginController < UIViewController
-  IMAGE_BOUNDS = [[0, 30], [320, 104]]
   LOGIN_FIELD_BOUNDS = [[20, 155], [280, 35]]
   LOGIN_BUTTON_BOUNDS = [[20, 200], [280, 35]]
 
   def viewDidLoad
+    init_game_selector_controller
     init_image_view
     init_login_field
     init_login_button
-    init_game_selector_controller
   end
 
   def viewWillAppear(animated)
     navigationController.setNavigationBarHidden(true, animated:animated)
+    UIApplication.sharedApplication.setStatusBarHidden(true, animated:animated)
+
+    if user_name = User.default_user_name
+      @login_field.hidden = true
+      @login_button.hidden = true
+      do_login(user_name)
+    else
+      @login_field.hidden = false
+      @login_button.hidden = false
+    end
+
     super
   end
 
   def viewWillDisappear(animated)
+    UIApplication.sharedApplication.setStatusBarHidden(false, animated:animated)
     navigationController.setNavigationBarHidden(false, animated:animated)
     super
   end
@@ -25,8 +36,9 @@ class LoginController < UIViewController
   end
 
   def init_image_view
-    @image_view = UIImageView.alloc.initWithFrame(IMAGE_BOUNDS)
-    @image_view.setImage(UIImage.imageNamed("home.png"))
+    @image_view = UIImageView.alloc.init
+    @image_view.contentMode = UIViewContentModeTopLeft | UIViewContentModeScaleToFill
+    @image_view.image = UIImage.imageNamed(Imaging.appropriate_image_file("splash.png"))
     view.addSubview(@image_view)
   end
 
@@ -50,10 +62,14 @@ class LoginController < UIViewController
     view.addSubview(@login_button)
   end
 
+  def do_login(user_name)
+    User.sign_in(user_name)
+    navigationController.pushViewController(@game_selector_controller, animated:true)
+  end
+
   def login_clicked
     if @login_field.text && !@login_field.text.strip.empty?
-      GameList.user_name = @login_field.text
-      navigationController.pushViewController(@game_selector_controller, animated:true)
+      do_login(@login_field.text)
     else
       Messaging.show_message("Username Required", "Please enter a username to play.")
     end

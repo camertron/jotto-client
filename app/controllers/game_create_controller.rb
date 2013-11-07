@@ -90,7 +90,7 @@ class GameCreateController < UIViewController
     if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@controls[:word_text_field].text)
       # send to server
       params = {
-        :player => GameList.user_name,
+        :player => User.current_user.user_name,
         :word => @controls[:word_text_field].text,
         :game_name => @controls[:name_text_field].text
       }
@@ -100,7 +100,7 @@ class GameCreateController < UIViewController
       end
 
       params = URL.build_params(params)
-      url = File.join(Game::ENDPOINT, "game", GameList.user_name, "create", "?#{params}")
+      url = File.join(Game::ENDPOINT, "game", User.current_user.user_name, "create", "?#{params}")
 
       JottoRestClient.get(url, lambda do |response|
         Dispatch::Queue.main.sync do

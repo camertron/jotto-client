@@ -10,8 +10,6 @@ class DesktopController < UIViewController
     # GKLocalPlayer.localPlayer.authenticateWithCompletionHandler(lambda do |error|
     #   UIAlertView.alloc.initWithTitle("Message", message:"Complete!", delegate:nil, cancelButtonTitle:"Ok", otherButtonTitles:nil).show
     # end)
-
-    puts UserProperties.instance.username
   end
 
   def alphabet_board_frame

@@ -5,17 +5,17 @@ class GameSelectorController < UITableViewController
     view.backgroundColor = UIColor.whiteColor
     setTitle("Games")
 
+    init_action_sheet
+    init_action_sheet_button
     init_indicator
-    init_new_game_button
     init_refresh_button
     init_desktop_view
     init_game_create_view
     init_join_view
-
-    update_list
   end
 
   def viewWillAppear(animated)
+    update_list if GameList.all.size == 0
     view.deselectRowAtIndexPath(view.indexPathForSelectedRow, animated:animated)
     view.reloadData
     super
@@ -34,14 +34,25 @@ class GameSelectorController < UITableViewController
     @indicator_button = UIBarButtonItem.alloc.initWithCustomView(@indicator)
   end
 
-  def init_new_game_button
-    @new_game_button = UIBarButtonItem.alloc.initWithTitle("New Game", style:UIBarButtonItemStylePlain, target:self, action:'create_new_game')
-  	navigationItem.leftBarButtonItem = @new_game_button
+  def init_action_sheet
+    @action_sheet = UIActionSheet.alloc.init
+    @action_sheet.delegate = self
+    @action_sheet.addButtonWithTitle("New Game")
+    @action_sheet.addButtonWithTitle("Sign Out")
+  end
+
+  def init_action_sheet_button
+    @action_sheet_button = UIBarButtonItem.alloc.initWithTitle("•••", style:UIBarButtonItemStylePlain, target:self, action:'show_action_sheet')
+    navigationItem.leftBarButtonItem = @action_sheet_button
   end
 
   def init_refresh_button
     @refresh_button = UIBarButtonItem.alloc.initWithBarButtonSystemItem(UIBarButtonSystemItemRefresh, target:self, action:'update_list')
     navigationItem.rightBarButtonItem = @refresh_button
+  end
+
+  def show_action_sheet
+    @action_sheet.showInView(view)
   end
 
   def init_desktop_view
@@ -75,10 +86,25 @@ class GameSelectorController < UITableViewController
     navigationController.pushViewController(@game_create_controller, animated:true)
   end
 
+  def sign_out
+    User.current_user.sign_out
+    GameList.all.clear
+    navigationController.popViewControllerAnimated(true)
+  end
+
   def gameJoined(controller, didJoinGame:joined_game)
     GameList.all[GameList::PENDING].reject! { |game| joined_game.id == game.id }
     GameList.all[GameList::THEIR_TURN] << joined_game
     view.reloadData
+  end
+
+  def actionSheet(actionSheet, clickedButtonAtIndex: buttonIndex)
+    case buttonIndex
+      when 0
+        create_new_game
+      when 1
+        sign_out
+    end
   end
 
   def alertView(alertView, clickedButtonAtIndex:buttonIndex)

@@ -20,7 +20,7 @@ class GameJoinController < GuessSubmitController
       end
 
       params = URL.build_params(params)
-      url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.user_name), "join", @game_id.to_s, "?#{params}")
+      url = File.join(Game::ENDPOINT, "game", URL.encode(User.current_user.user_name), "join", @game_id.to_s, "?#{params}")
 
       JottoRestClient.get(url, lambda do |response|
         Dispatch::Queue.main.sync do

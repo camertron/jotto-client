@@ -4,7 +4,13 @@ class GameList < Array
   MY_TURN = 2
   THEIR_TURN = 3
   COMPLETE = 4
-  TITLES = { 0 => "New", 1 => "Pending", 2 => "My Turn", 3 => "Their Turn", 4 => "Complete" }
+  TITLES = {
+    0 => "New",
+    1 => "Pending",
+    2 => "My Turn",
+    3 => "Their Turn",
+    4 => "Complete"
+  }
 
   class << self
     def all=(list)
@@ -16,7 +22,7 @@ class GameList < Array
     end
 
     def refresh(callback)
-      url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.user_name), "list")
+      url = File.join(Game::ENDPOINT, "game", URL.encode(User.current_user.user_name), "list")
       JottoRestClient.get(url, lambda do |response|
         if response.succeeded?
           @all = []
@@ -35,18 +41,6 @@ class GameList < Array
 
     def current=(game)
       @current = game
-    end
-
-    def user_name
-      @user_name
-    end
-
-    def user_name=(name)
-      @user_name = name
-    end
-
-    def thongle?
-      @user_name == "zombin101"
     end
 
     def add(new_game)
