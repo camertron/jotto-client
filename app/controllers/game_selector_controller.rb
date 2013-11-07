@@ -35,10 +35,12 @@ class GameSelectorController < UITableViewController
   end
 
   def init_action_sheet
-    @action_sheet = UIActionSheet.alloc.init
-    @action_sheet.delegate = self
-    @action_sheet.addButtonWithTitle("New Game")
-    @action_sheet.addButtonWithTitle("Sign Out")
+    @action_sheet = UIActionSheet.alloc.initWithTitle(nil,
+      delegate:self,
+      cancelButtonTitle:"Cancel",
+      destructiveButtonTitle:"Sign Out",
+      otherButtonTitles:"New Game", nil
+    )
   end
 
   def init_action_sheet_button
@@ -100,9 +102,9 @@ class GameSelectorController < UITableViewController
 
   def actionSheet(actionSheet, clickedButtonAtIndex: buttonIndex)
     case buttonIndex
-      when 0
+      when @action_sheet.firstOtherButtonIndex
         create_new_game
-      when 1
+      when @action_sheet.destructiveButtonIndex
         sign_out
     end
   end
