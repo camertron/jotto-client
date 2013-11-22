@@ -121,8 +121,8 @@ class GameSelectorController < UITableViewController
     cell ||= UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:identifier)
 
     text = GameList.all[indexPath.section][indexPath.row].name.dup
-    if GameList.all[indexPath.section][indexPath.row].opponent
-      text << " vs #{GameList.all[indexPath.section][indexPath.row].opponent}"
+    if opponent = GameList.all[indexPath.section][indexPath.row].opponent
+      text << " vs #{opponent.name}"
     end
 
     cell.textLabel.text = text

@@ -2,6 +2,7 @@ class GuessSubmitController < UIViewController
   TEXT_VIEW_BOUNDS = [[10, 10], [300, 35]]
   SUBMIT_BTN_BOUNDS = [[10, 55], [300, 35]]
   MY_WORD_BUTTON_BOUNDS = [[10, 95], [300, 35]]
+  WON_LABEL_BOUNDS = [[10, 130], [300, 35]]
   THONGLE_BOUNDS = [[60, 160], [200, 200]]
 
   attr_accessor :delegate
@@ -12,12 +13,43 @@ class GuessSubmitController < UIViewController
     init_indicator
     init_my_word_button
     init_thongle if User.current_user.thongle?
-    setTitle("Guess");
+    # init_won_label
 
     self.view.backgroundColor = UIColor.clearColor
     background_table_view = UITableView.alloc.initWithFrame(self.view.bounds, style:UITableViewStyleGrouped);
     self.view.addSubview(background_table_view)
     self.view.sendSubviewToBack(background_table_view)
+  end
+
+  def viewWillAppear(animated)
+    # show_won_label = GameList.current.player.won? ||
+    #   (GameList.current.opponent.won? && GameList.current.status == "their_turn")
+    # @won_label.hidden = true  # hide for now since logic is nuts and doesn't exist yet
+  end
+
+  def tabBarItem
+    @tab_bar_item ||= begin
+      image = UIImage.imageNamed("guess_tab_bar_item.png")
+      UITabBarItem.alloc.initWithTitle("Guess", image:image, tag:0)
+    end
+  end
+
+  def init_won_label
+    @won_label = UILabel.alloc.initWithFrame(WON_LABEL_BOUNDS)
+    @won_label.backgroundColor = UIColor.clearColor
+    @won_label.font = UIFont.systemFontOfSize(14.0)
+
+    text = if GameList.current.player.won?
+      "You won!"
+    else
+      "You lost :("
+    end
+
+    text << " Your word: #{GameList.current.player.word.upcase}"
+    text << " Opponent's word: #{GameList.current.opponent.word.upcase}"
+
+    @won_label.text = text
+    view.addSubview(@won_label)
   end
 
   def init_my_word_button
@@ -44,13 +76,21 @@ class GuessSubmitController < UIViewController
     @indicator_button = UIBarButtonItem.alloc.initWithCustomView(@indicator)
   end
 
+  def textFieldFinished(sender)
+    # hide the keyboard
+    sender.resignFirstResponder
+  end
+
   def init_text_field
     @text_field = UITextField.alloc.initWithFrame(TEXT_VIEW_BOUNDS)
     @text_field.placeholder = "UBLOO"
     @text_field.borderStyle = UITextBorderStyleRoundedRect
     @text_field.clearButtonMode = UITextFieldViewModeWhileEditing
     @text_field.returnKeyType = UIReturnKeyDone
-    @text_field.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+    @text_field.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter
+    @text_field.setReturnKeyType(UIReturnKeyDone)
+    @text_field.addTarget(self, action:"textFieldFinished:", forControlEvents:UIControlEventEditingDidEndOnExit)
+    @text_field.delegate = self
     view.addSubview(@text_field)
   end
 

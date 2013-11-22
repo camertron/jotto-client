@@ -87,12 +87,12 @@ class GameCreateController < UIViewController
   end
 
   def create_game
-    if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@controls[:word_text_field].text)
+    # if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@controls[:word_text_field].text)
       # send to server
       params = {
         :player => User.current_user.user_name,
-        :word => @controls[:word_text_field].text,
-        :game_name => @controls[:name_text_field].text
+        :word => @controls[:word_text_field].text || "",
+        :game_name => @controls[:name_text_field].text || ""
       }
 
       if PushNotifications.device_token
@@ -113,8 +113,8 @@ class GameCreateController < UIViewController
           end
         end
       end)
-    else
-      Messaging.show_message("Invalid Word", "According to Apple, '#{@controls[:word_text_field].text || ""}' is not a word.")
-    end
+    # else
+    #   Messaging.show_message("Invalid Word", "According to Apple, '#{@controls[:word_text_field].text || ""}' is not a word.")
+    # end
   end
 end

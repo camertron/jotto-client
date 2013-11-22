@@ -70,6 +70,7 @@ class LoginController < UIViewController
   def login_clicked
     if @login_field.text && !@login_field.text.strip.empty?
       do_login(@login_field.text)
+      @login_field.text = ""
     else
       Messaging.show_message("Username Required", "Please enter a username to play.")
     end

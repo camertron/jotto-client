@@ -1,6 +1,6 @@
 class Game
-  # ENDPOINT = "http://192.168.2.64:3000"
-  ENDPOINT = "http://jotto-server.herokuapp.com"
+  ENDPOINT = "http://localhost:3000"
+  # ENDPOINT = "http://jotto-server.herokuapp.com"
   attr_accessor :name, :id, :status, :player, :opponent
 
   def self.from_hash(hash)
@@ -8,7 +8,7 @@ class Game
     game.name = hash["name"]
     game.id = hash["id"]
     game.status = hash["status"]
-    game.opponent = hash["opponent"]
+    game.opponent = PlayerState.from_hash(hash["opponent"]) if hash["opponent"]
     game.player = PlayerState.from_hash(hash["player"]) if hash["player"]
     game
   end

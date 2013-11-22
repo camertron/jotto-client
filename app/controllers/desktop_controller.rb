@@ -4,8 +4,8 @@ class DesktopController < UIViewController
   def viewDidLoad
     init_guess_list
     init_alphabet_board
-    init_guess_view
-    init_guess_nav_button
+    init_tools_view
+    init_tools_nav_button
 
     # GKLocalPlayer.localPlayer.authenticateWithCompletionHandler(lambda do |error|
     #   UIAlertView.alloc.initWithTitle("Message", message:"Complete!", delegate:nil, cancelButtonTitle:"Ok", otherButtonTitles:nil).show
@@ -28,19 +28,19 @@ class DesktopController < UIViewController
     )
   end
 
-  def init_guess_nav_button
-    @guess_nav_button = UIBarButtonItem.alloc.initWithTitle("Guess", style:UIBarButtonItemStylePlain, target:self, action:'show_guess_view')
-  	navigationItem.rightBarButtonItem = @guess_nav_button
+  def init_tools_nav_button
+    @tools_nav_button = UIBarButtonItem.alloc.initWithTitle("Tools", style:UIBarButtonItemStylePlain, target:self, action:'show_tools_view')
+  	navigationItem.rightBarButtonItem = @tools_nav_button
   end
 
-  def init_guess_view
-    @submit_controller = GuessSubmitController.alloc.init
-    @submit_controller.delegate = self
+  def init_tools_view
+    @tools_controller = ToolsController.alloc.init
+    @tools_controller.delegate = self
   end
 
-  def show_guess_view
+  def show_tools_view
     GameList.current.save
-    navigationController.pushViewController(@submit_controller, animated:true)
+    navigationController.pushViewController(@tools_controller, animated:true)
   end
 
   def init_alphabet_board
@@ -107,4 +107,5 @@ class DesktopController < UIViewController
 
     refresh
   end
+
 end
