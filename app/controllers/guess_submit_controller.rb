@@ -1,22 +1,55 @@
 class GuessSubmitController < UIViewController
-  TEXT_VIEW_BOUNDS = [[10, 10], [300, 35]]
-  SUBMIT_BTN_BOUNDS = [[10, 55], [300, 35]]
-  MY_WORD_BUTTON_BOUNDS = [[10, 95], [300, 35]]
-  WON_LABEL_BOUNDS = [[10, 130], [300, 35]]
-  THONGLE_BOUNDS = [[60, 160], [200, 200]]
+  include LayoutCreation
 
   attr_accessor :delegate
 
+  def controls
+    [
+      { :type => :text,
+        :name => :text_field,
+        :placeholder => "UBLOO",
+        :customizer => lambda do |control|
+          control.clearButtonMode = UITextFieldViewModeWhileEditing
+          control.returnKeyType = UIReturnKeyDone
+          control.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter
+          control.setReturnKeyType(UIReturnKeyDone)
+          control.delegate = self
+          control.addTarget(
+            self,
+            action:"textFieldFinished:",
+            forControlEvents:UIControlEventEditingDidEndOnExit
+          )
+        end
+      }, {
+        :type => :button,
+        :label => 'Submit',
+        :on_click => 'submit',
+        :name => :submit_button
+      }, {
+        :type => :button,
+        :label => 'Tap to see your word',
+        :on_click => 'see_word',
+        :name => :my_word_button
+      }, {
+        :type => :image,
+        :file => 'zombin101.png',
+        :width => 200,
+        :height => 200,
+        :name => :thongle_image
+      }
+    ]
+  end
+
   def viewDidLoad
-    init_text_field
-    init_submit_btn
+    @controls = layout(controls)
     init_indicator
-    init_my_word_button
-    init_thongle if User.current_user.thongle?
-    # init_won_label
+
+    unless User.current_user.thongle?
+      @controls[:thongle_image].hidden = true
+    end
 
     self.view.backgroundColor = UIColor.clearColor
-    background_table_view = UITableView.alloc.initWithFrame(self.view.bounds, style:UITableViewStyleGrouped);
+    background_table_view = UITableView.alloc.initWithFrame(self.view.bounds, style:UITableViewStyleGrouped)
     self.view.addSubview(background_table_view)
     self.view.sendSubviewToBack(background_table_view)
   end
@@ -34,41 +67,26 @@ class GuessSubmitController < UIViewController
     end
   end
 
-  def init_won_label
-    @won_label = UILabel.alloc.initWithFrame(WON_LABEL_BOUNDS)
-    @won_label.backgroundColor = UIColor.clearColor
-    @won_label.font = UIFont.systemFontOfSize(14.0)
+  # def init_won_label
+  #   @won_label = UILabel.alloc.initWithFrame(WON_LABEL_BOUNDS)
+  #   @won_label.backgroundColor = UIColor.clearColor
+  #   @won_label.font = UIFont.systemFontOfSize(14.0)
 
-    text = if GameList.current.player.won?
-      "You won!"
-    else
-      "You lost :("
-    end
+  #   text = if GameList.current.player.won?
+  #     "You won!"
+  #   else
+  #     "You lost :("
+  #   end
 
-    text << " Your word: #{GameList.current.player.word.upcase}"
-    text << " Opponent's word: #{GameList.current.opponent.word.upcase}"
+  #   text << " Your word: #{GameList.current.player.word.upcase}"
+  #   text << " Opponent's word: #{GameList.current.opponent.word.upcase}"
 
-    @won_label.text = text
-    view.addSubview(@won_label)
-  end
-
-  def init_my_word_button
-    @my_word_btn = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    @my_word_btn.frame = MY_WORD_BUTTON_BOUNDS
-    @my_word_btn.setTitle('Tap to see your word', forState:UIControlStateNormal)
-    @my_word_btn.setTitle('Tap to see your word', forState:UIControlStateSelected)
-    @my_word_btn.addTarget(self, action:'see_word', forControlEvents:UIControlEventTouchUpInside)
-    view.addSubview(@my_word_btn)
-  end
+  #   @won_label.text = text
+  #   view.addSubview(@won_label)
+  # end
 
   def see_word
     Messaging.show_message("Your word", GameList.current.player.word.upcase)
-  end
-
-  def init_thongle
-    @thongle_view = UIImageView.alloc.initWithFrame(THONGLE_BOUNDS)
-    @thongle_view.setImage(UIImage.imageNamed("zombin101.png"))
-    view.addSubview(@thongle_view)
   end
 
   def init_indicator
@@ -81,34 +99,12 @@ class GuessSubmitController < UIViewController
     sender.resignFirstResponder
   end
 
-  def init_text_field
-    @text_field = UITextField.alloc.initWithFrame(TEXT_VIEW_BOUNDS)
-    @text_field.placeholder = "UBLOO"
-    @text_field.borderStyle = UITextBorderStyleRoundedRect
-    @text_field.clearButtonMode = UITextFieldViewModeWhileEditing
-    @text_field.returnKeyType = UIReturnKeyDone
-    @text_field.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter
-    @text_field.setReturnKeyType(UIReturnKeyDone)
-    @text_field.addTarget(self, action:"textFieldFinished:", forControlEvents:UIControlEventEditingDidEndOnExit)
-    @text_field.delegate = self
-    view.addSubview(@text_field)
-  end
-
-  def init_submit_btn
-    @submit_btn = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    @submit_btn.frame = SUBMIT_BTN_BOUNDS
-    @submit_btn.setTitle('Submit', forState:UIControlStateNormal)
-    @submit_btn.setTitle('Submit', forState:UIControlStateSelected)
-    @submit_btn.addTarget(self, action:'submit', forControlEvents:UIControlEventTouchUpInside)
-    view.addSubview(@submit_btn)
-  end
-
   def submit
     # if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
-      @submit_btn.enabled = false
+      @controls[:submit_button].enabled = false
       show_loading
 
-      params = URL.build_params(:guess_text => @text_field.text || "")
+      params = URL.build_params(:guess_text => @controls[:text_field].text || "")
       url = File.join(Game::ENDPOINT, "game", URL.encode(GameList.current.player.name), GameList.current.id.to_s, "guess", "?#{params}")
 
       JottoRestClient.get(url, lambda do |response|
@@ -119,13 +115,13 @@ class GuessSubmitController < UIViewController
             finished = !!response.data["finished"]
             GameList.current.player.guesses << guess
 
-            @text_field.clearText
+            @controls[:text_field].clearText
             navigationController.popViewControllerAnimated(true)
 
             delegate.guessSubmit(self, didSubmitGuess:guess, forPlayer:player, gameIsFinished:finished)
           end
 
-          @submit_btn.enabled = true
+          @controls[:submit_button].enabled = true
           hide_loading
         end
       end)

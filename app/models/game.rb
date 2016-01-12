@@ -1,6 +1,6 @@
 class Game
-  ENDPOINT = "http://localhost:3000"
-  # ENDPOINT = "http://jotto-server.herokuapp.com"
+  # ENDPOINT = "http://0.0.0.0:3000"
+  ENDPOINT = "http://jotto-server.herokuapp.com"
   attr_accessor :name, :id, :status, :player, :opponent
 
   def self.from_hash(hash)

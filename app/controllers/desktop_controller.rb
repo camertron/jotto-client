@@ -58,9 +58,11 @@ class DesktopController < UIViewController
   end
 
   def refresh
-    setTitle(GameList.current.name)
-    @alphabet_board.refresh
-    @guess_list.reloadData
+    if @alphabet_board
+      setTitle(GameList.current.name)
+      @alphabet_board.refresh
+      @guess_list.reloadData
+    end
   end
 
   def alphabet_board(alphabet_board, didLetterStateChange:letter)

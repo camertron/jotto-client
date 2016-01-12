@@ -6,15 +6,18 @@ class GameJoinController < GuessSubmitController
     setTitle("Your Word")
   end
 
-  def init_my_word_button
-    # override to avoid adding a "My word: " label
+  def controls
+    # avoid adding a "my word" button
+    super.select do |control|
+      control[:name] != :my_word_button
+    end
   end
 
   def submit
     # if UIReferenceLibraryViewController.dictionaryHasDefinitionForTerm(@text_field.text)
       show_loading
 
-      params = { :word => @text_field.text || "" }
+      params = { :word => @controls[:text_field].text || "" }
       if PushNotifications.device_token
         params[:device_token] = PushNotifications.device_token
       end
